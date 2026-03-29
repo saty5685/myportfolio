@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Blog Admin</title>
+    <link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .admin-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 40px;
+            background: var(--light-navy);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .admin-nav h2 {
+            color: var(--lightest-slate);
+            font-size: 18px;
+        }
+        .admin-nav h2 span {
+            color: var(--accent);
+        }
+        .admin-nav-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        .admin-nav-actions a {
+            color: var(--slate);
+            font-size: 13px;
+            font-family: var(--font-mono);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .admin-nav-actions a:hover {
+            color: var(--accent);
+        }
+        .admin-content {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 25px;
+        }
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .admin-header h1 {
+            color: var(--lightest-slate);
+            font-size: 28px;
+        }
+        .blog-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .blog-table th {
+            text-align: left;
+            padding: 12px 16px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid var(--lightest-navy);
+        }
+        .blog-table td {
+            padding: 14px 16px;
+            color: var(--slate);
+            font-size: 14px;
+            border-bottom: 1px solid rgba(100, 255, 218, 0.05);
+        }
+        .blog-table tr:hover td {
+            background: rgba(100, 255, 218, 0.02);
+        }
+        .blog-table .title-cell {
+            color: var(--lightest-slate);
+            font-weight: 500;
+        }
+        .blog-table .category-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-family: var(--font-mono);
+            text-transform: uppercase;
+        }
+        .category-badge.tech { background: rgba(100, 255, 218, 0.1); color: var(--accent); }
+        .category-badge.daily { background: rgba(255, 183, 77, 0.1); color: #ffb74d; }
+        .category-badge.life { background: rgba(206, 147, 216, 0.1); color: #ce93d8; }
+        .blog-table .actions-cell {
+            display: flex;
+            gap: 10px;
+        }
+        .blog-table .actions-cell a,
+        .blog-table .actions-cell button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .btn-edit {
+            color: var(--accent);
+            text-decoration: none;
+        }
+        .btn-edit:hover {
+            background: rgba(100, 255, 218, 0.1);
+        }
+        .btn-delete {
+            color: #ff6b6b;
+        }
+        .btn-delete:hover {
+            background: rgba(255, 107, 107, 0.1);
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--slate);
+        }
+        .empty-state i {
+            font-size: 48px;
+            color: var(--lightest-navy);
+            margin-bottom: 16px;
+        }
+        .empty-state p {
+            margin-bottom: 20px;
+        }
+        @media (max-width: 768px) {
+            .admin-nav { padding: 12px 20px; }
+            .admin-content { padding: 25px 15px; }
+            .admin-header { flex-direction: column; gap: 15px; align-items: flex-start; }
+            .blog-table th:nth-child(3),
+            .blog-table td:nth-child(3),
+            .blog-table th:nth-child(4),
+            .blog-table td:nth-child(4) { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="admin-nav">
+        <h2><span>&lt;</span>Admin<span>/&gt;</span></h2>
+        <div class="admin-nav-actions">
+            <a href="/">View Site</a>
+            <a href="/blogs">View Blog</a>
+            <a href="/admin/logout">Logout</a>
+        </div>
+    </nav>
+    <div class="admin-content">
+        <div class="admin-header">
+            <h1>Blog Posts</h1>
+            <a href="/admin/new" class="btn">
+                <i class="fas fa-plus"></i> New Post
+            </a>
+        </div>
+
+        <% if (blogs.length === 0) { %>
+        <div class="empty-state">
+            <i class="far fa-newspaper"></i>
+            <p>No blog posts yet. Create your first one!</p>
+            <a href="/admin/new" class="btn">Create Post</a>
+        </div>
+        <% } else { %>
+        <table class="blog-table">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% blogs.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(blog => { %>
+                <tr>
+                    <td class="title-cell"><%= blog.title %></td>
+                    <td>
+                        <span class="category-badge <%= (blog.category || 'tech').toLowerCase() %>">
+                            <%= blog.category || 'tech' %>
+                        </span>
+                    </td>
+                    <td><%= new Date(blog.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %></td>
+                    <td class="actions-cell">
+                        <a href="/admin/edit/<%= blog.id %>" class="btn-edit" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <form method="POST" action="/admin/delete/<%= blog.id %>" onsubmit="return confirm('Delete this post?')" style="display:inline;">
+                            <button type="submit" class="btn-delete" title="Delete">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                <% }) %>
+            </tbody>
+        </table>
+        <% } %>
+    </div>
+</body>
+</html>

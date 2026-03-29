@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog | Satyam Singh</title>
+    <meta name="description" content="Technical blog by Satyam Singh — insights on microservices, Java, Spring Boot, Kafka, and distributed systems.">
+    <link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+    <header id="header" class="scrolled">
+        <nav>
+            <a href="/" class="logo" aria-label="Home">S<span>.</span></a>
+            <div class="nav-links" id="navLinks">
+                <ol>
+                    <li><a href="/#about" class="nav-link">About</a></li>
+                    <li><a href="/#experience" class="nav-link">Experience</a></li>
+                    <li><a href="/#projects" class="nav-link">Projects</a></li>
+                    <li><a href="/#skills" class="nav-link">Skills</a></li>
+                    <li><a href="/blogs" class="nav-link active">Blog</a></li>
+                    <li><a href="/#contact" class="nav-link">Contact</a></li>
+                </ol>
+                <a href="/docs/SatyamSinghResume.pdf" class="btn btn-sm" download>Resume</a>
+            </div>
+            <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </nav>
+    </header>
+
+    <div class="mobile-menu" id="mobileMenu">
+        <nav>
+            <ol>
+                <li><a href="/#about" class="mobile-link">About</a></li>
+                <li><a href="/#experience" class="mobile-link">Experience</a></li>
+                <li><a href="/#projects" class="mobile-link">Projects</a></li>
+                <li><a href="/#skills" class="mobile-link">Skills</a></li>
+                <li><a href="/blogs" class="mobile-link">Blog</a></li>
+                <li><a href="/#contact" class="mobile-link">Contact</a></li>
+            </ol>
+            <a href="/docs/SatyamSinghResume.pdf" class="btn" download>Resume</a>
+        </nav>
+    </div>
+
+    <main class="blogs-page">
+        <section class="blogs-hero">
+            <a href="/" class="blog-back"><i class="fas fa-arrow-left"></i> Home</a>
+            <h1>Blog</h1>
+            <p>Thoughts on backend engineering, system design, and lessons from building distributed systems in production.</p>
+        </section>
+
+        <div class="blog-grid">
+            <% blogs.forEach(function(post) { %>
+            <a href="/blog/<%= post.id %>" class="blog-card fade-up">
+                <% if (post.coverImage) { %>
+                <img class="blog-card-cover" src="<%= post.coverImage %>" alt="<%= post.title %>">
+                <% } %>
+                <div class="blog-card-inner">
+                    <div class="blog-card-top">
+                        <% if (post.category) { %>
+                        <span class="blog-category-badge <%= post.category %>"><%= post.category %></span>
+                        <% } else { %>
+                        <i class="fas fa-newspaper blog-card-icon"></i>
+                        <% } %>
+                        <span class="blog-card-date"><%= new Date(post.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %></span>
+                    </div>
+                    <h4><%= post.title %></h4>
+                    <p><%= post.excerpt %></p>
+                    <div class="blog-card-footer">
+                        <ul class="blog-tags">
+                            <% post.tags.forEach(function(tag) { %>
+                            <li><%= tag %></li>
+                            <% }); %>
+                        </ul>
+                        <span class="blog-read-time"><%= post.readTime %> min read</span>
+                    </div>
+                </div>
+            </a>
+            <% }); %>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-socials" style="display:flex;">
+            <a href="https://github.com/saty5685" target="_blank" rel="noopener noreferrer" aria-label="GitHub"><i class="fab fa-github"></i></a>
+            <a href="https://www.linkedin.com/in/saty5685/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+            <a href="https://leetcode.com/saty5685" target="_blank" rel="noopener noreferrer" aria-label="LeetCode"><i class="fas fa-code"></i></a>
+        </div>
+        <p>Designed &amp; Built by Satyam Singh</p>
+        <p class="footer-note">&copy; 2026 All rights reserved.</p>
+    </footer>
+
+    <script src="/utility/script.js"></script>
+</body>
+</html>

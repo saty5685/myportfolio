@@ -1,0 +1,44 @@
+[
+    {
+        "id": "saga-pattern-microservices",
+        "title": "Why Saga Pattern is Essential for Microservices",
+        "excerpt": "How I implemented the Saga pattern to handle distributed transactions in our digital wallet platform — and why two-phase commit wasn't an option.",
+        "content": "When building our digital wallet platform, one of the biggest challenges was handling distributed transactions across multiple microservices. A P2P transfer involves debiting one wallet and crediting another — sounds simple, but in a microservices world, these are two separate services with separate databases.\n\n## The Problem with Distributed Transactions\n\nIn a monolithic application, you'd wrap both operations in a single database transaction. But with microservices, each service has its own database. Two-phase commit (2PC) was our first thought, but it has major drawbacks:\n\n- **Performance bottleneck** — it locks resources across services\n- **Single point of failure** — the coordinator becomes critical\n- **Not suitable for high-throughput** — our system processes thousands of transactions per second\n\n## Enter the Saga Pattern\n\nThe Saga pattern breaks a distributed transaction into a sequence of local transactions. Each service performs its local transaction and publishes an event. If one step fails, compensating transactions are executed to undo the previous steps.\n\nWe chose **orchestration-based saga** over choreography because:\n1. Centralized control makes debugging easier\n2. Complex workflows are easier to manage\n3. Better visibility into transaction state\n\n## Our Implementation\n\n```java\n@Service\npublic class TransferSagaOrchestrator {\n    \n    public void executeTransfer(TransferRequest request) {\n        // Step 1: Validate & Debit sender\n        kafkaTemplate.send(\"wallet.debit\", debitEvent);\n        \n        // Step 2: On success, Credit receiver\n        // Step 3: On success, Record in ledger\n        // Step 4: Notify both parties\n    }\n    \n    public void compensate(String sagaId, int failedStep) {\n        // Reverse completed steps in order\n    }\n}\n```\n\nEach step publishes events to Kafka topics, and the orchestrator listens for success/failure events to decide the next action.\n\n## Key Takeaways\n\n- Always design compensating actions before implementing the forward flow\n- Use idempotency keys to handle duplicate events\n- Persist saga state for recovery after service restarts\n- Monitor saga completion rates — incomplete sagas indicate system issues",
+        "tags": [
+            "Microservices",
+            "Saga Pattern",
+            "Kafka",
+            "System Design"
+        ],
+        "date": "2026-03-28",
+        "readTime": 5
+    },
+    {
+        "id": "redis-caching-strategies-fintech",
+        "title": "Redis Caching Strategies That Saved Us 200ms Per Request",
+        "excerpt": "A deep dive into cache-aside, write-through, and cache invalidation patterns we used to optimize wallet balance lookups.",
+        "content": "At Priority IDC, every millisecond counts in financial transactions. When we analyzed our wallet service, balance lookups were hitting the database on every request — averaging 250ms per query. After implementing Redis caching, we brought that down to 40ms.\n\n## The Challenge\n\nOur wallet service handles:\n- Balance checks before every transaction\n- Real-time balance display on the app\n- Concurrent reads during high-traffic periods\n\nThe database was becoming a bottleneck, especially during peak hours.\n\n## Cache-Aside Pattern (Lazy Loading)\n\nThis is our primary pattern for balance reads:\n\n```java\npublic BigDecimal getBalance(String walletId) {\n    String cached = redisTemplate.opsForValue()\n        .get(\"balance:\" + walletId);\n    \n    if (cached != null) {\n        return new BigDecimal(cached);\n    }\n    \n    BigDecimal balance = walletRepository\n        .findBalanceByWalletId(walletId);\n    \n    redisTemplate.opsForValue().set(\n        \"balance:\" + walletId,\n        balance.toString(),\n        Duration.ofMinutes(5)\n    );\n    \n    return balance;\n}\n```\n\n## Write-Through for Transactions\n\nWhen a transaction modifies a balance, we update cache immediately:\n\n1. Update database (source of truth)\n2. Update Redis cache\n3. If cache update fails, invalidate the key\n\n## Lessons Learned\n\n- **TTL is your safety net** — even with write-through, set expiration times\n- **Use Redis transactions** for atomic read-modify-write operations\n- **Monitor cache hit rates** — we maintain 95%+ hit rate\n- **Plan for cache failures** — the system must work (slower) without Redis",
+        "tags": [
+            "Redis",
+            "Caching",
+            "Performance",
+            "Spring Boot"
+        ],
+        "date": "2026-03-25",
+        "readTime": 4
+    },
+    {
+        "id": "kafka-event-driven-lessons",
+        "title": "5 Lessons from Building Event-Driven Systems with Kafka",
+        "excerpt": "Real-world lessons from implementing Kafka-based event streaming in production — from consumer group pitfalls to exactly-once semantics.",
+        "content": "After working with Kafka across three companies (Paytm, 17Live, and Priority IDC), here are the lessons I wish I knew from day one.\n\n## 1. Consumer Group Rebalancing Will Bite You\n\nWhen a consumer joins or leaves a group, Kafka triggers a rebalance. During this time, no messages are processed. In a high-throughput system, even a few seconds of pause can cause a backlog.\n\n**Solution:** Use `CooperativeStickyAssignor` instead of the default `RangeAssignor`. It minimizes partition reassignment during rebalances.\n\n## 2. Exactly-Once Is Harder Than You Think\n\nKafka supports exactly-once semantics (EOS), but only within Kafka-to-Kafka flows. The moment you involve an external system (like a database), you need idempotency.\n\n```java\n@KafkaListener(topics = \"transactions\")\npublic void processTransaction(TransactionEvent event) {\n    // Idempotency check\n    if (processedRepo.existsByEventId(event.getId())) {\n        return; // Already processed\n    }\n    // Process and record\n}\n```\n\n## 3. Dead Letter Topics Are Non-Negotiable\n\nPoison messages (messages that repeatedly fail processing) will block your consumer. Always configure a dead letter topic.\n\n## 4. Schema Evolution Matters\n\nWe learned this the hard way — adding a required field to an event broke all consumers. Use Avro or Protobuf with a schema registry for backward compatibility.\n\n## 5. Monitor Consumer Lag\n\nConsumer lag (the difference between the latest message and the consumer's current position) is the single most important Kafka metric. Set alerts for lag exceeding your SLA threshold.",
+        "tags": [
+            "Kafka",
+            "Event-Driven",
+            "Microservices",
+            "Lessons Learned"
+        ],
+        "date": "2026-03-20",
+        "readTime": 6
+    }
+]

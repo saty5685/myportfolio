@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login | Satyam Singh</title>
+    <link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .login-page {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 25px;
+        }
+        .login-box {
+            background: var(--light-navy);
+            padding: 40px;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 400px;
+        }
+        .login-box h1 {
+            color: var(--lightest-slate);
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        .login-box p {
+            color: var(--slate);
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+        .login-box input {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--lightest-navy);
+            border: 1px solid var(--lightest-navy);
+            border-radius: 4px;
+            color: var(--lightest-slate);
+            font-family: var(--font-mono);
+            font-size: 14px;
+            outline: none;
+            margin-bottom: 15px;
+        }
+        .login-box input:focus {
+            border-color: var(--accent);
+        }
+        .login-box .btn {
+            width: 100%;
+            text-align: center;
+        }
+        .login-error {
+            color: #ff6b6b;
+            font-size: 13px;
+            font-family: var(--font-mono);
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-page">
+        <form class="login-box" method="POST" action="/admin/login">
+            <h1>Blog Admin</h1>
+            <p>Enter your admin password to continue</p>
+            <% if (error) { %>
+            <div class="login-error"><%= error %></div>
+            <% } %>
+            <input type="password" name="password" placeholder="Password" required autofocus>
+            <button type="submit" class="btn">Sign In</button>
+        </form>
+    </div>
+</body>
+</html>

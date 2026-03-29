@@ -1,37 +1,62 @@
-const express=require('express')
-const router=express.Router()
-const fs = require('fs'); 
+const express = require('express');
+const router = express.Router();
+const fs = require('fs');
 const moment = require('moment-timezone');
-const Messages=require('../models/Messages')
-router.post('/', async (req,res)=>{
-    console.log("hello this is request",req.body)
-    const now = moment().tz('Asia/Kolkata'); 
-    const formattedDate = now.format('MMMM Do YYYY, h:mm:ss a');
+const validator = require('validator');
+
+const NTFY_TOPIC = process.env.NTFY_TOPIC;
+
+function sendPushNotification(data) {
+    const body = `From: ${data.name}\nEmail: ${data.email}\nTime: ${data.timeOfMessage}\n\n${data.message}`;
+
+    return fetch(`https://ntfy.sh/${NTFY_TOPIC}`, {
+        method: 'POST',
+        headers: {
+            'Title': `Portfolio: ${data.subject}`,
+            'Priority': '4',
+            'Tags': 'email,portfolio',
+            'Click': `mailto:${data.email}`,
+            'Actions': `view, Reply via Email, mailto:${data.email}`
+        },
+        body
+    });
+}
+
+router.post('/', async (req, res) => {
     try {
-        const messageData = {
-            name: req.body.name,
-            email: req.body.email,
-            subject: req.body.subject,
-            message: req.body.message,
-            timeOfMessage:formattedDate
+        const { name, email, subject, message } = req.body;
+
+        if (!name || !email || !subject || !message) {
+            return res.status(400).json({ message: 'All fields are required' });
+        }
+
+        if (!validator.isEmail(email)) {
+            return res.status(400).json({ message: 'Invalid email address' });
+        }
+
+        const sanitizedData = {
+            name: validator.escape(validator.trim(name)),
+            email: validator.normalizeEmail(validator.trim(email)),
+            subject: validator.escape(validator.trim(subject)),
+            message: validator.escape(validator.trim(message)),
+            timeOfMessage: moment().tz('Asia/Kolkata').format('MMMM Do YYYY, h:mm:ss a')
         };
 
-        // Convert to JSON string (if using JSON format)
-        const messageString = JSON.stringify(messageData, null, 2); // Human-readable
+        const messageString = JSON.stringify(sanitizedData, null, 2);
 
-        // Write data to file (replace 'messages.json' with your desired filename)
-        fs.appendFile('clientMessages/messages.txt', messageString+'\n', (err) => {
-            if (err) {
-                console.error(err);
-                return res.status(500).json({ message: 'Error appending to file' });
-            }
-            console.log('Message appended to file successfully!');
-            res.status(201).json({ message: 'Message saved' });
+        fs.appendFile('clientMessages/messages.txt', messageString + '\n', (err) => {
+            if (err) console.error('File write error:', err);
         });
+
+        if (NTFY_TOPIC) {
+            await sendPushNotification(sanitizedData);
+        }
+
+        res.status(201).json({ message: 'Message sent successfully' });
     } catch (err) {
-        console.error(err);
-        res.status(400).json(err);
+        console.error('Message route error:', err);
+        res.status(500).json({ message: 'Server error' });
     }
-    
-})
-module.exports=router 
+});
+
+module.exports = router;

@@ -22,7 +22,8 @@ function hashIP(ip) {
 }
 
 function trackVisitor(req, res, next) {
-    // Skip static files and admin/API routes
+    // Skip static files, admin routes, and bot traffic
+    const ua = req.headers['user-agent'] || '';
     if (
         req.path.startsWith('/css') ||
         req.path.startsWith('/js') ||
@@ -30,8 +31,9 @@ function trackVisitor(req, res, next) {
         req.path.startsWith('/uploads') ||
         req.path.startsWith('/utility') ||
         req.path.startsWith('/docs') ||
-        req.path.startsWith('/admin/api/visitors') ||
-        req.path.endsWith('.ico')
+        req.path.startsWith('/admin') ||
+        req.path.endsWith('.ico') ||
+        ua.includes('Google-Apps-Script')
     ) {
         return next();
     }

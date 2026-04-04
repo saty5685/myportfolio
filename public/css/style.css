@@ -1733,6 +1733,35 @@ footer p {
     color: var(--light-slate);
 }
 
+.blog-body .blog-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 14px;
+}
+
+.blog-body .blog-table th {
+    text-align: left;
+    padding: 10px 16px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid var(--lightest-navy);
+    background: rgba(100, 255, 218, 0.03);
+}
+
+.blog-body .blog-table td {
+    padding: 10px 16px;
+    color: var(--light-slate);
+    border-bottom: 1px solid rgba(100, 255, 218, 0.05);
+}
+
+.blog-body .blog-table tr:hover td {
+    background: rgba(100, 255, 218, 0.02);
+}
+
 .blog-more {
     margin-top: 60px;
     padding-top: 40px;

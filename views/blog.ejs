@@ -65,7 +65,55 @@
             <img class="blog-cover-image" src="<%= blog.coverImage %>" alt="<%= blog.title %>">
             <% } %>
             <div class="blog-body">
-                <%- blog.content.replace(/\n## (.*)/g, '<h2>$1</h2>').replace(/\n### (.*)/g, '<h3>$1</h3>').replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>').replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" class="blog-inline-image">').replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n- (.*)/g, '<li>$1</li>').replace(/(<li>.*<\/li>)/g, '<ul>$1</ul>').replace(/<\/ul>\s*<ul>/g, '').replace(/\n\d+\. (.*)/g, '<li>$1</li>').replace(/\n\n/g, '</p><p>').replace(/^/, '<p>').replace(/$/, '</p>') %>
+                <%
+                function renderMarkdown(md) {
+                    var s = md.replace(/\r\n/g, '\n');
+                    // code blocks first (preserve content)
+                    s = s.replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>');
+                    // headings
+                    s = s.replace(/\n### (.*)/g, '<h3>$1</h3>');
+                    s = s.replace(/\n## (.*)/g, '<h2>$1</h2>');
+                    // markdown tables
+                    s = s.replace(/(\n\|.+\|(?:\n\|.+\|)+)/g, function(tableBlock) {
+                        var rows = tableBlock.trim().split('\n').filter(function(r) { return r.trim(); });
+                        if (rows.length < 2) return tableBlock;
+                        var html = '<table class="blog-table">';
+                        // header row
+                        var hCells = rows[0].split('|').filter(function(c) { return c.trim() !== ''; });
+                        html += '<thead><tr>';
+                        hCells.forEach(function(c) { html += '<th>' + c.trim() + '</th>'; });
+                        html += '</tr></thead><tbody>';
+                        // skip separator row (row[1] with ---), then data rows
+                        for (var i = 2; i < rows.length; i++) {
+                            var cells = rows[i].split('|').filter(function(c) { return c.trim() !== ''; });
+                            html += '<tr>';
+                            cells.forEach(function(c) { html += '<td>' + c.trim() + '</td>'; });
+                            html += '</tr>';
+                        }
+                        html += '</tbody></table>';
+                        return html;
+                    });
+                    // images
+                    s = s.replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" class="blog-inline-image">');
+                    // links
+                    s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+                    // bold
+                    s = s.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                    // inline code
+                    s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
+                    // unordered lists
+                    s = s.replace(/\n- (.*)/g, '<li>$1</li>');
+                    s = s.replace(/(<li>.*<\/li>)/g, '<ul>$1</ul>');
+                    s = s.replace(/<\/ul>\s*<ul>/g, '');
+                    // ordered lists
+                    s = s.replace(/\n\d+\. (.*)/g, '<li>$1</li>');
+                    // paragraphs
+                    s = s.replace(/\n\n/g, '</p><p>');
+                    s = '<p>' + s + '</p>';
+                    return s;
+                }
+                %>
+                <%- renderMarkdown(blog.content) %>
             </div>
             <div class="blog-tags-row blog-tags-bottom">
                 <% blog.tags.forEach(function(tag) { %>

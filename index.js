@@ -5,6 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const messageRouter = require('./routes/messageRoute');
 const adminRouter = require('./routes/adminRoute');
+const trackVisitor = require('./middleware/trackVisitor');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -24,6 +25,8 @@ app.use(session({
     saveUninitialized: false,
     cookie: { maxAge: 24 * 60 * 60 * 1000 }
 }));
+
+app.use(trackVisitor);
 
 app.get('/', (req, res) => {
     const blogs = getBlogs();

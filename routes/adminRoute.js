@@ -6,6 +6,7 @@ const fs = require('fs');
 const crypto = require('crypto');
 
 const BLOGS_FILE = path.join(__dirname, '..', 'data', 'blogs.json');
+const VISITORS_FILE = path.join(__dirname, '..', 'data', 'visitors.json');
 const ADMIN_PASS = process.env.ADMIN_PASS || 'changeme';
 
 // Multer config for image uploads
@@ -150,6 +151,42 @@ router.post('/delete/:id', requireAuth, (req, res) => {
     blogs = blogs.filter(b => b.id !== req.params.id);
     saveBlogs(blogs);
     res.redirect('/admin');
+});
+
+// Visitors dashboard
+function getVisitors() {
+    try {
+        return JSON.parse(fs.readFileSync(VISITORS_FILE, 'utf-8'));
+    } catch {
+        return [];
+    }
+}
+
+router.get('/visitors', requireAuth, (req, res) => {
+    const visitors = getVisitors();
+    res.render('admin-visitors', { visitors });
+});
+
+// Visitors API (JSON)
+router.get('/api/visitors', requireAuth, (req, res) => {
+    const visitors = getVisitors();
+    const totalVisitors = visitors.length;
+    const totalPageViews = visitors.reduce((sum, v) => sum + v.visitCount, 0);
+    const todayStr = new Date().toISOString().split('T')[0];
+    const todayVisitors = visitors.filter(v => v.lastVisit.startsWith(todayStr)).length;
+
+    res.json({
+        totalVisitors,
+        totalPageViews,
+        todayVisitors,
+        visitors: visitors.sort((a, b) => new Date(b.lastVisit) - new Date(a.lastVisit))
+    });
+});
+
+// Clear visitor data
+router.post('/visitors/clear', requireAuth, (req, res) => {
+    fs.writeFileSync(VISITORS_FILE, '[]', 'utf-8');
+    res.redirect('/admin/visitors');
 });
 
 module.exports = router;

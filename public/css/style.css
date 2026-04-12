@@ -1609,6 +1609,23 @@ footer p {
     transform: translateX(-5px);
 }
 
+.blog-back-allPost {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: fit-content;
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    margin-bottom: 40px;
+    margin-left: -180px;
+    transition: var(--transition);
+}
+
+.blog-back-allPost:hover {
+    transform: translateX(-5px);
+}
+
 .blog-header {
     margin-bottom: 40px;
 }
@@ -1731,6 +1748,46 @@ footer p {
 
 .blog-body pre code {
     color: var(--light-slate);
+}
+
+.blog-body blockquote.blog-blockquote {
+    border-left: 3px solid var(--accent);
+    padding: 16px 20px;
+    margin: 20px 0;
+    background: rgba(100, 255, 218, 0.03);
+    border-radius: 0 6px 6px 0;
+    color: var(--light-slate);
+    font-style: italic;
+    line-height: 1.7;
+}
+
+.blog-body hr.blog-hr {
+    border: none;
+    height: 1px;
+    background: var(--lightest-navy);
+    margin: 35px 0;
+}
+
+.blog-body ol {
+    list-style: decimal;
+}
+
+.blog-body ul li::before {
+    content: '▹';
+    position: absolute;
+    left: -20px;
+    color: var(--accent);
+    font-size: 14px;
+}
+
+.blog-body ul li {
+    position: relative;
+    list-style: none;
+}
+
+.blog-body em {
+    color: var(--light-slate);
+    font-style: italic;
 }
 
 .blog-body .blog-table {

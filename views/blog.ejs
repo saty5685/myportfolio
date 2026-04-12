@@ -69,21 +69,31 @@
                 function renderMarkdown(md) {
                     var s = md.replace(/\r\n/g, '\n');
                     // code blocks first (preserve content)
-                    s = s.replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>');
+                    var codeBlocks = [];
+                    s = s.replace(/```(\w+)?\n([\s\S]*?)```/g, function(match, lang, code) {
+                        var idx = codeBlocks.length;
+                        codeBlocks.push('<pre><code class="lang-' + (lang || '') + '">' + code.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</code></pre>');
+                        return '\n%%CODEBLOCK_' + idx + '%%\n';
+                    });
+                    // horizontal rules
+                    s = s.replace(/\n---\n/g, '\n<hr class="blog-hr">\n');
                     // headings
                     s = s.replace(/\n### (.*)/g, '<h3>$1</h3>');
                     s = s.replace(/\n## (.*)/g, '<h2>$1</h2>');
+                    // blockquotes
+                    s = s.replace(/(?:^|\n)(?:> (.*)(?:\n|$))+/g, function(block) {
+                        var lines = block.trim().split('\n').map(function(l) { return l.replace(/^>\s?/, ''); });
+                        return '<blockquote class="blog-blockquote">' + lines.join('<br>') + '</blockquote>';
+                    });
                     // markdown tables
                     s = s.replace(/(\n\|.+\|(?:\n\|.+\|)+)/g, function(tableBlock) {
                         var rows = tableBlock.trim().split('\n').filter(function(r) { return r.trim(); });
                         if (rows.length < 2) return tableBlock;
                         var html = '<table class="blog-table">';
-                        // header row
                         var hCells = rows[0].split('|').filter(function(c) { return c.trim() !== ''; });
                         html += '<thead><tr>';
                         hCells.forEach(function(c) { html += '<th>' + c.trim() + '</th>'; });
                         html += '</tr></thead><tbody>';
-                        // skip separator row (row[1] with ---), then data rows
                         for (var i = 2; i < rows.length; i++) {
                             var cells = rows[i].split('|').filter(function(c) { return c.trim() !== ''; });
                             html += '<tr>';
@@ -99,17 +109,46 @@
                     s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
                     // bold
                     s = s.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                    // italic (single asterisk, not inside bold)
+                    s = s.replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<em>$1</em>');
                     // inline code
                     s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
                     // unordered lists
-                    s = s.replace(/\n- (.*)/g, '<li>$1</li>');
-                    s = s.replace(/(<li>.*<\/li>)/g, '<ul>$1</ul>');
-                    s = s.replace(/<\/ul>\s*<ul>/g, '');
+                    s = s.replace(/((?:^|\n)- .*(?:\n- .*)*)/g, function(block) {
+                        var items = block.trim().split('\n').map(function(l) {
+                            return '<li>' + l.replace(/^- /, '') + '</li>';
+                        });
+                        return '<ul>' + items.join('') + '</ul>';
+                    });
                     // ordered lists
-                    s = s.replace(/\n\d+\. (.*)/g, '<li>$1</li>');
+                    s = s.replace(/((?:^|\n)\d+\. .*(?:\n\d+\. .*)*)/g, function(block) {
+                        var items = block.trim().split('\n').map(function(l) {
+                            return '<li>' + l.replace(/^\d+\.\s/, '') + '</li>';
+                        });
+                        return '<ol>' + items.join('') + '</ol>';
+                    });
                     // paragraphs
                     s = s.replace(/\n\n/g, '</p><p>');
                     s = '<p>' + s + '</p>';
+                    // clean up empty paragraphs
+                    s = s.replace(/<p>\s*<\/p>/g, '');
+                    s = s.replace(/<p>\s*(<h[23]>)/g, '$1');
+                    s = s.replace(/(<\/h[23]>)\s*<\/p>/g, '$1');
+                    s = s.replace(/<p>\s*(<ul>)/g, '$1');
+                    s = s.replace(/(<\/ul>)\s*<\/p>/g, '$1');
+                    s = s.replace(/<p>\s*(<ol>)/g, '$1');
+                    s = s.replace(/(<\/ol>)\s*<\/p>/g, '$1');
+                    s = s.replace(/<p>\s*(<blockquote)/g, '$1');
+                    s = s.replace(/(<\/blockquote>)\s*<\/p>/g, '$1');
+                    s = s.replace(/<p>\s*(<pre>)/g, '$1');
+                    s = s.replace(/(<\/pre>)\s*<\/p>/g, '$1');
+                    s = s.replace(/<p>\s*(<hr[^>]*>)\s*<\/p>/g, '$1');
+                    s = s.replace(/<p>\s*(<table)/g, '$1');
+                    s = s.replace(/(<\/table>)\s*<\/p>/g, '$1');
+                    // restore code blocks
+                    for (var i = 0; i < codeBlocks.length; i++) {
+                        s = s.replace('%%CODEBLOCK_' + i + '%%', codeBlocks[i]);
+                    }
                     return s;
                 }
                 %>

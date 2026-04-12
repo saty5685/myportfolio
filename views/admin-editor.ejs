@@ -197,6 +197,143 @@
             margin-top: 8px;
         }
         .uploading-indicator.show { display: flex; }
+
+        /* Preview panel */
+        .preview-panel {
+            display: none;
+            background: var(--navy);
+            border: 1px solid var(--lightest-navy);
+            border-radius: 6px;
+            padding: 30px;
+            margin-top: 12px;
+            max-height: 600px;
+            overflow-y: auto;
+            line-height: 1.8;
+            font-size: 16px;
+        }
+        .preview-panel.show { display: block; }
+        .preview-panel h2 {
+            color: var(--lightest-slate);
+            font-size: 22px;
+            margin: 40px 0 15px;
+        }
+        .preview-panel h2:first-child { margin-top: 0; }
+        .preview-panel h3 {
+            color: var(--lightest-slate);
+            font-size: 20px;
+            margin: 30px 0 10px;
+        }
+        .preview-panel p {
+            margin-bottom: 15px;
+            color: var(--slate);
+        }
+        .preview-panel strong {
+            color: var(--lightest-slate);
+        }
+        .preview-panel em {
+            color: var(--light-slate);
+            font-style: italic;
+        }
+        .preview-panel ul, .preview-panel ol {
+            padding-left: 25px;
+            margin-bottom: 15px;
+        }
+        .preview-panel ol { list-style: decimal; }
+        .preview-panel li {
+            margin-bottom: 8px;
+            color: var(--slate);
+        }
+        .preview-panel pre {
+            background: var(--light-navy);
+            border: 1px solid var(--lightest-navy);
+            border-radius: 4px;
+            padding: 20px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-family: var(--font-mono);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .preview-panel code {
+            font-family: var(--font-mono);
+            font-size: 14px;
+            color: var(--accent);
+        }
+        .preview-panel pre code {
+            color: var(--light-slate);
+        }
+        .preview-panel blockquote {
+            border-left: 3px solid var(--accent);
+            padding: 16px 20px;
+            margin: 20px 0;
+            background: rgba(100, 255, 218, 0.03);
+            border-radius: 0 6px 6px 0;
+            color: var(--light-slate);
+            font-style: italic;
+        }
+        .preview-panel hr {
+            border: none;
+            height: 1px;
+            background: var(--lightest-navy);
+            margin: 35px 0;
+        }
+        .preview-panel a {
+            color: var(--accent);
+        }
+        .preview-panel img {
+            max-width: 100%;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+        .preview-panel table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+        .preview-panel th {
+            text-align: left;
+            padding: 10px 16px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid var(--lightest-navy);
+        }
+        .preview-panel td {
+            padding: 10px 16px;
+            color: var(--light-slate);
+            border-bottom: 1px solid rgba(100, 255, 218, 0.05);
+        }
+        .toolbar-right {
+            margin-left: auto;
+            display: flex;
+            gap: 8px;
+        }
+        .toolbar-right button {
+            background: var(--lightest-navy);
+            border: none;
+            color: var(--slate);
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-family: var(--font-mono);
+            transition: all 0.2s;
+        }
+        .toolbar-right button:hover {
+            color: var(--accent);
+            background: rgba(100, 255, 218, 0.1);
+        }
+        .toolbar-right button.active {
+            color: var(--accent);
+            background: rgba(100, 255, 218, 0.15);
+            border: 1px solid rgba(100, 255, 218, 0.3);
+        }
+        .toolbar {
+            flex-wrap: wrap;
+        }
         .spinner {
             width: 14px; height: 14px;
             border: 2px solid var(--lightest-navy);
@@ -282,9 +419,16 @@
                     <button type="button" id="insertImageBtn" title="Insert Image"><i class="fas fa-image"></i></button>
                     <button type="button" onclick="insertMd('\n- ', '')" title="List"><i class="fas fa-list-ul"></i></button>
                     <button type="button" onclick="insertMd('\n> ', '')" title="Quote"><i class="fas fa-quote-left"></i></button>
+                    <button type="button" onclick="insertMd('\n\n', '')" title="Blank Line"><i class="fas fa-arrows-alt-v"></i></button>
+                    <button type="button" onclick="insertMd('\n---\n', '')" title="Horizontal Rule"><i class="fas fa-minus"></i></button>
+                    <div class="toolbar-right">
+                        <button type="button" id="previewToggle" title="Preview"><i class="fas fa-eye"></i> Preview</button>
+                        <button type="button" id="templateBtn" title="Insert Template"><i class="fas fa-file-alt"></i> Template</button>
+                    </div>
                 </div>
                 <textarea name="content" id="contentArea" rows="20" placeholder="Write your content in Markdown..." required><%= blog ? blog.content : '' %></textarea>
-                <div class="form-hint">Supports Markdown: **bold**, *italic*, ## headings, ```code blocks```, [links](url), ![images](url)</div>
+                <div id="previewPanel" class="preview-panel"></div>
+                <div class="form-hint">Supports Markdown: **bold**, *italic*, ## headings, ```code blocks```, [links](url), ![images](url), > blockquotes, --- horizontal rules</div>
             </div>
 
             <div class="form-actions">
@@ -370,6 +514,162 @@
                 btn.innerHTML = '<i class="fas fa-image"></i>';
             };
             input.click();
+        });
+
+        // --- Markdown Preview ---
+        const previewPanel = document.getElementById('previewPanel');
+        const previewToggle = document.getElementById('previewToggle');
+        let previewActive = false;
+
+        function renderPreviewMarkdown(md) {
+            let s = md.replace(/\r\n/g, '\n');
+            // code blocks first
+            const codeBlocks = [];
+            s = s.replace(/```(\w+)?\n([\s\S]*?)```/g, function(match, lang, code) {
+                const idx = codeBlocks.length;
+                codeBlocks.push('<pre><code>' + code.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</code></pre>');
+                return '\n%%CODEBLOCK_' + idx + '%%\n';
+            });
+            // horizontal rules
+            s = s.replace(/\n---\n/g, '\n<hr>\n');
+            // headings
+            s = s.replace(/\n### (.*)/g, '<h3>$1</h3>');
+            s = s.replace(/\n## (.*)/g, '<h2>$1</h2>');
+            // blockquotes
+            s = s.replace(/(?:^|\n)(?:> (.*)(?:\n|$))+/g, function(block) {
+                const lines = block.trim().split('\n').map(l => l.replace(/^>\s?/, ''));
+                return '<blockquote>' + lines.join('<br>') + '</blockquote>';
+            });
+            // tables
+            s = s.replace(/(\n\|.+\|(?:\n\|.+\|)+)/g, function(tableBlock) {
+                const rows = tableBlock.trim().split('\n').filter(r => r.trim());
+                if (rows.length < 2) return tableBlock;
+                let html = '<table>';
+                const hCells = rows[0].split('|').filter(c => c.trim() !== '');
+                html += '<thead><tr>';
+                hCells.forEach(c => { html += '<th>' + c.trim() + '</th>'; });
+                html += '</tr></thead><tbody>';
+                for (let i = 2; i < rows.length; i++) {
+                    const cells = rows[i].split('|').filter(c => c.trim() !== '');
+                    html += '<tr>';
+                    cells.forEach(c => { html += '<td>' + c.trim() + '</td>'; });
+                    html += '</tr>';
+                }
+                html += '</tbody></table>';
+                return html;
+            });
+            // images
+            s = s.replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1">');
+            // links
+            s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+            // bold
+            s = s.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            // italic
+            s = s.replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<em>$1</em>');
+            // inline code
+            s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
+            // unordered lists
+            s = s.replace(/((?:^|\n)- .*(?:\n- .*)*)/g, function(block) {
+                const items = block.trim().split('\n').map(l => '<li>' + l.replace(/^- /, '') + '</li>');
+                return '<ul>' + items.join('') + '</ul>';
+            });
+            // ordered lists
+            s = s.replace(/((?:^|\n)\d+\. .*(?:\n\d+\. .*)*)/g, function(block) {
+                const items = block.trim().split('\n').map(l => '<li>' + l.replace(/^\d+\.\s/, '') + '</li>');
+                return '<ol>' + items.join('') + '</ol>';
+            });
+            // paragraphs
+            s = s.replace(/\n\n/g, '</p><p>');
+            s = '<p>' + s + '</p>';
+            // cleanup
+            s = s.replace(/<p>\s*<\/p>/g, '');
+            s = s.replace(/<p>\s*(<h[23]>)/g, '$1');
+            s = s.replace(/(<\/h[23]>)\s*<\/p>/g, '$1');
+            s = s.replace(/<p>\s*(<ul>)/g, '$1');
+            s = s.replace(/(<\/ul>)\s*<\/p>/g, '$1');
+            s = s.replace(/<p>\s*(<ol>)/g, '$1');
+            s = s.replace(/(<\/ol>)\s*<\/p>/g, '$1');
+            s = s.replace(/<p>\s*(<blockquote)/g, '$1');
+            s = s.replace(/(<\/blockquote>)\s*<\/p>/g, '$1');
+            s = s.replace(/<p>\s*(<pre>)/g, '$1');
+            s = s.replace(/(<\/pre>)\s*<\/p>/g, '$1');
+            s = s.replace(/<p>\s*(<hr[^>]*>)\s*<\/p>/g, '$1');
+            s = s.replace(/<p>\s*(<table)/g, '$1');
+            s = s.replace(/(<\/table>)\s*<\/p>/g, '$1');
+            // restore code blocks
+            for (let i = 0; i < codeBlocks.length; i++) {
+                s = s.replace('%%CODEBLOCK_' + i + '%%', codeBlocks[i]);
+            }
+            return s;
+        }
+
+        previewToggle.addEventListener('click', () => {
+            previewActive = !previewActive;
+            previewToggle.classList.toggle('active', previewActive);
+            if (previewActive) {
+                previewPanel.innerHTML = renderPreviewMarkdown(contentArea.value);
+                previewPanel.classList.add('show');
+                contentArea.style.display = 'none';
+            } else {
+                previewPanel.classList.remove('show');
+                contentArea.style.display = '';
+            }
+        });
+
+        // --- Default Blog Template ---
+        const templateBtn = document.getElementById('templateBtn');
+        const blogTemplate = `Write a compelling opening paragraph that hooks the reader. Explain what problem this post addresses and why it matters.
+
+## The Problem
+
+Describe the challenge or problem clearly. What pain points does your audience face? Why do existing solutions fall short?
+
+## The Approach
+
+Explain your solution or approach step by step. Use subheadings to break down complex ideas.
+
+### Key Concept 1
+
+Explain the first major concept. Use examples and analogies to make it accessible.
+
+### Key Concept 2
+
+Explain the second major concept. Reference real-world scenarios where applicable.
+
+## Implementation
+
+Walk through the technical implementation. Include code snippets where relevant:
+
+\`\`\`java
+// Your code example here
+public class Example {
+    public void demonstrate() {
+        // Implementation details
+    }
+}
+\`\`\`
+
+## Results and Impact
+
+Share measurable outcomes, performance improvements, or lessons from production. Use concrete numbers when possible.
+
+## Key Takeaways
+
+- First key insight the reader should remember
+- Second key insight with practical application
+- Third key insight or recommendation
+
+> A memorable closing thought or quote that reinforces your main message.`;
+
+        templateBtn.addEventListener('click', () => {
+            if (contentArea.value.trim().length > 0) {
+                if (!confirm('This will replace your current content with a template. Continue?')) return;
+            }
+            contentArea.value = blogTemplate;
+            contentArea.focus();
+            if (previewActive) {
+                previewPanel.innerHTML = renderPreviewMarkdown(contentArea.value);
+            }
         });
     </script>
 </body>

@@ -102,6 +102,8 @@ router.post('/create', requireAuth, (req, res) => {
 
     const id = title
         .toLowerCase()
+        .trim()
+        .substring(0, 100)
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/(^-|-$)/g, '');
 

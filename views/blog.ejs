@@ -52,15 +52,16 @@
         <article class="blog-article">
             <a href="/blogs" class="blog-back"><i class="fas fa-arrow-left"></i> All posts</a>
             <header class="blog-header">
-                <% if (blog.category) { %>
+                <!-- <% if (blog.category) { %>
                 <span class="blog-category-badge <%= blog.category %>"><%= blog.category %></span>
-                <% } %>
+                <% } %> -->
                 <h1><%= blog.title %></h1>
-                <div class="blog-meta">
+                
+            </header>
+            <div class="blog-meta">
                     <span><i class="fas fa-calendar-alt"></i> <%= new Date(blog.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) %></span>
                     <span><i class="fas fa-clock"></i> <%= blog.readTime %> min read</span>
                 </div>
-            </header>
             <% if (blog.coverImage) { %>
             <img class="blog-cover-image" src="<%= blog.coverImage %>" alt="<%= blog.title %>">
             <% } %>

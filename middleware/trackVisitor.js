@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const geoip = require('geoip-lite');
 
 const VISITORS_FILE = path.join(__dirname, '..', 'data', 'visitors.json');
 
@@ -40,10 +41,27 @@ function trackVisitor(req, res, next) {
 
     try {
         const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress || 'unknown';
+        const cleanIP = ip.replace(/^::ffff:/, '');
         const visitorId = hashIP(ip);
         const userAgent = req.headers['user-agent'] || 'unknown';
         const page = req.originalUrl || req.path;
         const now = new Date().toISOString();
+
+        // Get geolocation data from IP
+        const geo = geoip.lookup(cleanIP);
+        const location = geo ? {
+            country: geo.country || 'Unknown',
+            city: geo.city || 'Unknown',
+            timezone: geo.timezone || 'Unknown',
+            latitude: geo.ll ? geo.ll[0] : null,
+            longitude: geo.ll ? geo.ll[1] : null
+        } : {
+            country: 'Unknown',
+            city: 'Unknown',
+            timezone: 'Unknown',
+            latitude: null,
+            longitude: null
+        };
 
         const visitors = getVisitors();
         const existing = visitors.find(v => v.visitorId === visitorId);
@@ -61,8 +79,9 @@ function trackVisitor(req, res, next) {
         } else {
             visitors.push({
                 visitorId,
-                ip: ip.replace(/^::ffff:/, ''),
+                ip: cleanIP,
                 userAgent,
+                location,
                 visitCount: 1,
                 firstVisit: now,
                 lastVisit: now,

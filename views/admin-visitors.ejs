@@ -199,7 +199,9 @@
             .visitor-table th:nth-child(4),
             .visitor-table td:nth-child(4),
             .visitor-table th:nth-child(5),
-            .visitor-table td:nth-child(5) { display: none; }
+            .visitor-table td:nth-child(5),
+            .visitor-table th:nth-child(6),
+            .visitor-table td:nth-child(6) { display: none; }
         }
     </style>
 </head>
@@ -262,6 +264,7 @@
                 <tr>
                     <th></th>
                     <th>Visitor ID</th>
+                    <th>Location</th>
                     <th>IP Address</th>
                     <th>Visits</th>
                     <th>Pages</th>
@@ -278,6 +281,12 @@
                         </button>
                     </td>
                     <td class="visitor-id" title="<%= v.visitorId %>"><%= v.visitorId %></td>
+                    <td>
+                        <div style="font-family: var(--font-mono); font-size: 12px;">
+                            <div><strong><%= v.location?.country || 'Unknown' %></strong></div>
+                            <div style="color: var(--slate); font-size: 11px;"><%= v.location?.city || 'Unknown' %></div>
+                        </div>
+                    </td>
                     <td class="ip-cell"><%= v.ip %></td>
                     <td><span class="visit-count"><%= v.visitCount %></span></td>
                     <td>
@@ -294,8 +303,18 @@
                     <td><%= new Date(v.lastVisit).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) %></td>
                 </tr>
                 <tr class="detail-row" id="detail-<%= i %>" style="display:none;">
-                    <td colspan="7">
+                    <td colspan="8">
                         <div class="detail-content">
+                            <strong>Location:</strong>
+                            <div style="margin: 6px 0; font-family: var(--font-mono); font-size: 12px;">
+                                <div>📍 Country: <strong><%= v.location?.country || 'Unknown' %></strong></div>
+                                <div>🏙️ City: <strong><%= v.location?.city || 'Unknown' %></strong></div>
+                                <div>⏰ Timezone: <strong><%= v.location?.timezone || 'Unknown' %></strong></div>
+                                <% if (v.location?.latitude && v.location?.longitude) { %>
+                                <div>📌 Coordinates: <strong><%= v.location.latitude.toFixed(4) %>, <%= v.location.longitude.toFixed(4) %></strong></div>
+                                <% } %>
+                            </div>
+                            <br>
                             <strong>User Agent:</strong>
                             <div class="ua-text"><%= v.userAgent %></div>
                             <br>

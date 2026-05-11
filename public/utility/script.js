@@ -135,6 +135,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 formStatus.textContent = '✓ Message sent successfully!';
                 formStatus.className = 'form-status success';
                 form.reset();
+                
+                // Track Contact conversion event for Meta Pixel
+                if (typeof fbq !== 'undefined') {
+                    fbq('track', 'Contact');
+                }
             } else {
                 const err = await res.json();
                 throw new Error(err.message || 'Failed to send');

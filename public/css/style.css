@@ -1203,6 +1203,20 @@ footer {
     color: var(--accent);
 }
 
+.footer-links {
+    margin: 15px 0;
+}
+
+.footer-links a {
+    color: var(--slate);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.footer-links a:hover {
+    color: var(--accent);
+}
+
 footer p {
     margin-bottom: 5px;
 }

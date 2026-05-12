@@ -51,6 +51,10 @@ app.get('/hld', (req, res) => {
     res.render('hld');
 });
 
+app.get('/privacy-policy', (req, res) => {
+    res.render('privacy-policy');
+});
+
 app.use('/sendMessage', messageRouter);
 app.use('/admin', adminRouter);
 
